@@ -1,6 +1,5 @@
 var reader = new FileReader();
 var array;
-var resultingArrayForCSV;
 var resultingArray;
 var count;
 var percent;
@@ -25,7 +24,16 @@ function checkCustomSelect(e) {
     }
 }
 
+function populateCopyArea () {
+    jQuery('.textCopyArea').val("");
+    jQuery('.textCopyArea').html("");
+    resultingArray.forEach(function(itemDefinitionList) {
+        jQuery('.textCopyArea').append(itemDefinitionList[0] + termDefinitionSeparator + itemDefinitionList[1] + cardSeparator);
+    });
+}
+
 function copyQuizletTranslations() {
+    populateCopyArea();
     /* Get the text field */
     var copyText = jQuery('.textCopyArea');
 
@@ -37,9 +45,9 @@ function copyQuizletTranslations() {
 }
 
 function downloadTranslations() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    resultingArrayForCSV.forEach(function (row) {
-        csvContent += row;
+    let csvContent = "data:text/csv;charset=utf-8,Spanish Word,Translation\n";
+    resultingArray.forEach(function (row) {
+        csvContent += "\"" + row[0] + "\",\"" + row[1] + "\"\n";
     });
     var encodedUri = csvContent.replace(/\n/gm, "%0A").replace(/ /gm, "%20").replace(/-/gm, "%2D");
     var link = document.createElement("a");
@@ -55,8 +63,7 @@ function initSystem() {
     percent = 0;
     count = 0;
     array = [];
-    resultingArrayForCSV = [];
-    resultingArrayForCSV = ["Spanish Word,Translation", ];
+    resultingArray = [];
     slider.style.width = 0;
     slider.innerHTML = "0%";
     var _ = jQuery('#termDefinitionSeparatorSelect');
@@ -73,13 +80,14 @@ function initSystem() {
     }
     handleMultipleLanguages = jQuery("input[name='multipleTranslationOptions']:checked").val();
     removeArticles = jQuery('#removeArticles').is(":checked");
+    jQuery('.textCopyArea').val("");
     jQuery('.result').html("");
     jQuery('.result').hide();
-    jQuery('.textCopyArea').html();
+    jQuery('.textCopyArea').html("");
     jQuery('.ResultsHeader').hide();
 }
 
-function move(percent) {
+function moveSlider(percent) {
     slider.style.width = percent + '%';
     slider.innerHTML = percent * 1 + '%';
 }
@@ -118,15 +126,12 @@ function translate(item, index) {
         if (translated != "NO TRANSLATION FOUND") {
             translated = capitalize(translated);
         }
-        jQuery('.result').append("<li class='col-sm-6 col-md-4'><strong>" + item + ": </strong> " + translated + "</li>");
-        jQuery('.textCopyArea').append(item + termDefinitionSeparator + translated + cardSeparator);
-        var string = ("\"" + capitalize(item) + "\",\"" + translated + "\"").replace(/(\r\n\t|\n|\r\t|\r|\t)/gm, "") + "\n";
-        resultingArray.push((item, translated))
-        resultingArrayForCSV.push(string);
+        jQuery('.result').append("<span id='inputarea" + count + "' class='d-block'></span><li class='col-sm-6 col-md-4'><strong><a href='#!' id='" + count + "term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='" + count + "' data-role=\"term\">" + item + "</a>: </strong> <a href='#!' id='" + count + "translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId=" + count + " data-role=\"translation\">" + translated + "</a></li>");
+        resultingArray[count] = [item, translated];
         count += 1;
         percent = 1.0 * count / array.length;
         percent *= 100
-        move(Math.round(percent));
+        moveSlider(Math.round(percent));
     });
 }
 
@@ -189,6 +194,26 @@ function handleTranslateButtonClick() {
     respondToAjax();
 }
 
+function addInput(e) {
+    var id = e.dataset["cardid"];
+    jQuery('#inputarea' + id).html("<input id='" + id + "Input' class='form-control'></input>");
+    var inputField = jQuery('#' + id + 'Input');
+    inputField.value = e.innerHTML;
+    inputField.attr("value", e.innerHTML);
+    inputField.on("input", function(change) {
+        e.innerHTML = inputField.val();
+        var term = jQuery('#' + id + 'term').html().replace(/(^\s+?|\s+?$)/gm, "");
+        var translated = jQuery('#' + id + 'translation').html().replace(/(^\s+?|\s+?$)/gm, "");
+        resultingArray[id] = [term, translated];
+    });
+    inputField.trigger("focus");
+    inputField.on('focusout', function () {
+        inputField.remove()
+    });
+
+}
+
 initSystem();
+
 jQuery('#submit').click(handleTranslateButtonClick);
 jQuery('#upload').change(handleFileSelect);

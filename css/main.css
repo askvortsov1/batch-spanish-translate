@@ -7,6 +7,14 @@ a {
     color: #007bff;
 }
 
+a .link-uncolor {
+    color: black !important;
+}
+
+.link-uncolor {
+    color: inherit;
+}
+
 .form-signin {
     width: 100%;
     max-width: 420px;
