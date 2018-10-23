@@ -1,0 +1,205 @@
+<html>
+    <head>
+        <title>Translate List of Words To Spanish</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="author" content="Alexander Skvortsov">
+        <link rel="icon" href="favicon.ico">
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+            crossorigin="anonymous"></script>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+            crossorigin="anonymous">
+        <link href="css/main.css" rel="stylesheet">
+    </head>
+    <body>
+        <div style="max-width: 600px; margin: 0 auto; padding: 0 10px; background-color: #e8e8e8">
+            <div style="max-width: 560px; margin: 0 auto; background-color: #e8e8e8">
+                <div class="form-signin">
+                    <div class="text-center mb-4">
+                        <img class="mb-4" src="https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" alt="" width="150">
+                        <h1 class="mb-3 font-weight-normal">Batch Spanish/English Translate</h1>
+                        <p>
+                            This webpage allows you to translate multiple Spanish statements at the same time. Makes batch translations much faster and easier. Please note that this is a beta version, and all feedback is welcome.
+                        </p>
+                        <p>Please send any suggestions to <a href="mailto:sasha.skvortsov109@gmail.com">sasha.skvortsov109@gmail.com</a>. Actual translation credited to <a href="https://spanishdict.com">spanishdict.com</a>.</p>
+                    </div>
+                </div>
+                <div style="max-width: 560px;">
+                    <hr>
+                    <ul class="nav nav-pills nav-fill" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" id="uploadFile-tab" data-toggle="tab" href="#uploadFile" role="tab" aria-controls="uploadFile"
+                                aria-selected="false">Upload File</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" id="enterText-tab" data-toggle="tab" href="#enterText" role="tab" aria-controls="enterText"
+                                aria-selected="true">Enter Text</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
+                        </li>
+                    </ul>
+                    <hr>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade" id="uploadFile" role="tabpanel" aria-labelledby="uploadFile-tab">
+                            <h1 class="h3 my-3 font-weight-normal text-center">Instructions</h1>
+                            <ol class="text-left">
+                                <li>Make a list of Spanish words you want to translate in a google sheets spreadsheet, in one column.</li>
+                                <li>Download as CSV</li>
+                                <li>Upload Here</li>
+                            </ol>
+                            <div class="file-upload">
+                                <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">Add Word List</button>
+                                <div class="image-upload-wrap">
+                                    <input id="upload" class="file-upload-input" type='file' accept=".csv, text/csv" />
+                                    <div class="drag-text">
+                                        <h3>Drag and drop a file or click "Add Word List"</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade show active" id="enterText" role="tabpanel" aria-labelledby="enterText-tab">
+                            <h1 class="h3 my-3 font-weight-normal text-center">Instructions</h1>
+                            <ol class="text-left">
+                                <li>Enter a list of Spanish words/short phrases, separated by commas (e.g. "hablar, entender, dos"). Don't include quotes.</li>
+                                <li>Click Translate</li>
+                            </ol>
+                            <div class="alert alert-danger alert-dismissible fade show content-row py-3" style="display:none" id="errorMessage" role="alert">
+                                <span id="errorMessageInner"></span>
+                            </div>
+                            <div class="form-group mb-0 mt-4">
+                                <textarea class="form-control" id="textarea" rows="6" placeholder="Enter a comma-separated list of spanish words/phrases"></textarea>
+                            </div>
+                            <br>
+                            <a href="#!" id="submit" class="btn btn-success w-100 mb-3">Translate</a>
+                        </div>
+                        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                            <h1 class="h3 my-3 font-weight-normal text-center">Settings</h1>
+                            <p>If a word is valid in both Spanish and English, the system will return both translations by default. You can change this behavior here:</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="justEnglish" value="en" checked>
+                                <label class="form-check-label" for="justEnglish">
+                                    Return just English (default)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="bothTranslations" value="both">
+                                <label class="form-check-label" for="bothTranslations">
+                                    Return both translations (Not Encouraged)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="justSpanish" value="es">
+                                <label class="form-check-label" for="justSpanish">
+                                    Return just Spanish (Not Encouraged)
+                                </label>
+                            </div>
+                            <hr>
+                            <p>The translator can remove articles (los, las, lo, la, el, the, an, a, etc.) from submitted words. This can increase the chances of finding a translation. You can disable this feature here.</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="removeArticles" id="removeArticles" checked>
+                                <label class="form-check-label" for="removeArticles">
+                                    Enable article removal?
+                                </label>
+                            </div>
+                            <hr>
+                            <p>Here, you can change the separator between word and translation when copy-pasting into Quizlet</p>
+                            <select class="custom-select" name="termDefinitionSeparator" id="termDefinitionSeparatorSelect" onchange='checkCustomSelect.call(this,event)'>
+                                <option value="\t" selected>Tab (\t) (default)</option>
+                                <option value=",">Comma (,)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <input type="text" name="termDefinitionSeparator" id="termDefinitionSeparator" class="mt-2 form-control" style='display:none;' />
+                            <hr>
+                            <p>Here, you can change the separator between cards when copy-pasting into Quizlet</p>
+                            <select class="custom-select" name="cardSeparator" id="cardSeparatorSelect" onchange='checkCustomSelect.call(this,event)'>
+                                <option value="\n" selected>Newline (\n) (default)</option>
+                                <option value=";">Semicolon (;)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <input type="text" name="cardSeparator" id="cardSeparator" class="mt-2 form-control" style='display:none;' />
+                            <br>
+                            <br>
+                        </div>
+                    </div>
+                    <div id="myProgress" class="rounded mb-3">
+                        <div id="myBar" class="pl-2 rounded"></div>
+                    </div>
+                    <br>
+                </div>
+            </div>
+        </div>
+        <hr class="my-0">
+        <div style="padding: 0 15%">
+            <div class="ResultsHeader" style="display:none; max-width: 560px; margin: 40 auto">
+                <h1 class="text-center">Results</h1>
+                <br>
+                <p>
+                    Translated results generated here. Any requests for which a translation could not be found has been marked as so. Please double check these translations before using them, as this program is STILL IN BETA. It is very likely that it will miss multi-word phrases, in those cases, you will need to translate them individually.
+                </p>
+                <p>
+                    You can use this tool to easily generate a <a href="https://quizlet.com/">Quizlet</a> with the following steps:
+                    <br>
+                    <ol>
+                        <li>Copy the translations to your clipboard <strong><button onclick="copyQuizletTranslations()">by clicking here.</button></strong></li>
+                        <li>Go to the <a href="https://quizlet.com/create-set">"create a quizlet"</a> page</li>
+                        <li>Paste the copied text into the "import your data" box. Make sure that the "Between term and definition" setting is set to "Tab", and that the "Between Cards" setting is set to "New Line".</li>
+                        <li>Be sure to check over the quizlet before publishing: I can't guarantee that it will find the best translation for every word.</li>
+                        <li>Happy Studying!</li>
+                    </ol>
+                </p>
+                <br>
+                <a class="d-block btn w-100 btn-primary" id="#DownloadButton" onclick="downloadTranslations();">Download File</a>
+            </div>
+            <ul class="row result" style="display:none"></ul>
+            <textarea class="textCopyArea" readonly style="position: absolute; left: -9999px"></textarea>
+        </div>
+        <hr class="my-0">
+        <div class="w-100 p-3" style="background-color: #eeeeee">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <p class="text-center"><strong>DISCLAIMER: Do not use this for any purposes in violation of the Radnor Honor Code. By using this program, you assume full responsibility over any results of such use. This program is designed to simplify batch lookups of individual Spanish words to English, and back again. This will not be able to translate complex sentences. The author is not liable for any misuse.</strong></p>
+            </div>
+            <br>
+            <p class="text-center">&copy; 2018 Alexander Skvortsov | <a href="#!" data-toggle="modal" data-target="#devNotesModal">Dev Notes</a></p>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="devNotesModal" tabindex="-1" role="dialog" aria-labelledby="devNotesModal"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="devNotesLongTitle">Dev Notes</h2>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Todo:</h4>
+                        <ol>
+                            <li>Add calls to some free translation APIs for phrases where "No Translation Found".</li>
+                            <li>Label results with accuracy warnings if relevant? If so, make this an option.</li>
+                            <li>Add modals for Privacy Policy and Terms/Conditions.</li>
+                            <li>Add a big shiny switch to translate from English to Spanish, make site in Spanish.</li>
+                        </ol>
+                        <hr>
+                        <h4>Known Bugs</h4>
+                        <ol>
+                            <li>Thankfully none at the moment.</li>
+                        </ol>
+                        <hr>
+                        <h4>Other Notes</h4>
+                        <ol>
+                            <li>Hello World? I'll see myself out.</li>
+                        </ol>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/main.js"></script>
+    </body>
+</html>
