@@ -1,5 +1,6 @@
 var reader = new FileReader();
 var array;
+var resultingArrayForCSV;
 var resultingArray;
 var count;
 var percent;
@@ -37,7 +38,7 @@ function copyQuizletTranslations() {
 
 function downloadTranslations() {
     let csvContent = "data:text/csv;charset=utf-8,";
-    resultingArray.forEach(function (row) {
+    resultingArrayForCSV.forEach(function (row) {
         csvContent += row;
     });
     var encodedUri = csvContent.replace(/\n/gm, "%0A").replace(/ /gm, "%20").replace(/-/gm, "%2D");
@@ -54,8 +55,8 @@ function initSystem() {
     percent = 0;
     count = 0;
     array = [];
-    resultingArray = [];
-    resultingArray = ["Spanish Word,Translation",];
+    resultingArrayForCSV = [];
+    resultingArrayForCSV = ["Spanish Word,Translation", ];
     slider.style.width = 0;
     slider.innerHTML = "0%";
     var _ = jQuery('#termDefinitionSeparatorSelect');
@@ -120,7 +121,8 @@ function translate(item, index) {
         jQuery('.result').append("<li class='col-sm-6 col-md-4'><strong>" + item + ": </strong> " + translated + "</li>");
         jQuery('.textCopyArea').append(item + termDefinitionSeparator + translated + cardSeparator);
         var string = ("\"" + capitalize(item) + "\",\"" + translated + "\"").replace(/(\r\n\t|\n|\r\t|\r|\t)/gm, "") + "\n";
-        resultingArray.push(string);
+        resultingArray.push((item, translated))
+        resultingArrayForCSV.push(string);
         count += 1;
         percent = 1.0 * count / array.length;
         percent *= 100
