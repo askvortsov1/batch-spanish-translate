@@ -28,7 +28,7 @@ function populateCopyArea () {
     jQuery('.textCopyArea').val("");
     jQuery('.textCopyArea').html("");
     resultingArray.forEach(function(itemDefinitionList) {
-        jQuery('.textCopyArea').append(itemDefinitionList[0] + termDefinitionSeparator + itemDefinitionList[1] + cardSeparator);
+        jQuery('.textCopyArea').val(jQuery('.textCopyArea').val() + itemDefinitionList[0] + termDefinitionSeparator + itemDefinitionList[1] + cardSeparator);
     });
 }
 
@@ -101,6 +101,7 @@ function translate(item, index) {
     }
     var block;
     var translated = "";
+    var alerts = [];
     $.get(URL + urlItem, function (data) {
         var reg = /<div id=\"translate-e[sn]\" (.+?)>(.+?)<\/div><span/gi;
         if (reg.test(data)) {
@@ -113,11 +114,13 @@ function translate(item, index) {
             }
         }
         if (data == null) {
-            translated = "NO TRANSLATION FOUND"
+            translated = "NO TRANSLATION FOUND";
+            alerts.push("No translation found.");
         } else {
             block = data.match(/<div class=\"el\">(.+?)<\/div>/gi);
             if (block == null) {
-                translated = "NO TRANSLATION FOUND"
+                translated = "NO TRANSLATION FOUND";
+                alerts.push("No translation found.");
             } else {
                 translated = block.join(" ").replace(/<(?:.|\n)*?>/g, '');
             }
@@ -125,9 +128,13 @@ function translate(item, index) {
         item = capitalize(item);
         if (translated != "NO TRANSLATION FOUND") {
             translated = capitalize(translated);
+            var sourceString = data.match(/<div class="source"><h1 .+?>(.+?)<\/h1>/gi).join(" ");
+            if (term != sourceString) {
+                alerts.push("Term may have been entered incorrectly. My guess for the term is" + sourceString + ". <a href='#!' data-id='" + count + "' data-string='" + sourceString + "' onClick='replaceTermWithSuggested(this, event)'> Click here to accept this change</a>.")
+            }
         }
-        jQuery('.result').append("<span id='inputarea" + count + "' class='d-block'></span><li class='col-sm-6 col-md-4'><strong><a href='#!' id='" + count + "term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='" + count + "' data-role=\"term\">" + item + "</a>: </strong> <a href='#!' id='" + count + "translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId=" + count + " data-role=\"translation\">" + translated + "</a></li>");
-        resultingArray[count] = [item, translated];
+        jQuery('.result').append("<li class='col-sm-6 col-md-4'><strong><a href='#!' id='" + count + "term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='" + count + "' data-role=\"term\">" + item + "</a>: </strong> <a href='#!' id='" + count + "translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId=" + count + " data-role=\"translation\">" + translated + "</a><span id='inputarea" + count + "'></span></li>");
+        resultingArray[count] = [item, translated, alerts];
         count += 1;
         percent = 1.0 * count / array.length;
         percent *= 100
@@ -196,7 +203,7 @@ function handleTranslateButtonClick() {
 
 function addInput(e) {
     var id = e.dataset["cardid"];
-    jQuery('#inputarea' + id).html("<input id='" + id + "Input' class='form-control'></input>");
+    jQuery('#inputarea' + id).html("<input id='" + id + "Input' class='form-control' style='max-width: 80%'></input>");
     var inputField = jQuery('#' + id + 'Input');
     inputField.value = e.innerHTML;
     inputField.attr("value", e.innerHTML);
@@ -210,7 +217,15 @@ function addInput(e) {
     inputField.on('focusout', function () {
         inputField.remove()
     });
+}
 
+function replaceTermWithSuggested (e) {
+    var id = e.dataset["id"];
+    var string = e.dataset["string"];
+
+    resultingArray[id][0] = string;
+
+    jQuery('#' + id + 'term').innerHTML = string;
 }
 
 initSystem();
