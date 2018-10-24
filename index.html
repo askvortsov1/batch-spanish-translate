@@ -11,6 +11,7 @@
             crossorigin="anonymous"></script>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
             crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
         <link href="css/main.css" rel="stylesheet">
     </head>
     <body>
@@ -63,7 +64,7 @@
                         <div class="tab-pane fade show active" id="enterText" role="tabpanel" aria-labelledby="enterText-tab">
                             <h1 class="h3 my-3 font-weight-normal text-center">Instructions</h1>
                             <ol class="text-left">
-                                <li>Enter a list of Spanish words/short phrases, separated by commas (e.g. "hablar, entender, dos"). Don't include quotes.</li>
+                                <li>Enter a list of words/short phrases, separated by commas (e.g. "hablar, entender, dos"). Don't include quotes.</li>
                                 <li>Click Translate</li>
                             </ol>
                             <div class="alert alert-danger alert-dismissible fade show content-row py-3" style="display:none" id="errorMessage" role="alert">
@@ -77,25 +78,11 @@
                         </div>
                         <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                             <h1 class="h3 my-3 font-weight-normal text-center">Settings</h1>
-                            <p>If a word is valid in both Spanish and English, the system will return both translations by default. You can change this behavior here:</p>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="justEnglish" value="en" checked>
-                                <label class="form-check-label" for="justEnglish">
-                                    Return just English (default)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="bothTranslations" value="both">
-                                <label class="form-check-label" for="bothTranslations">
-                                    Return both translations (Not Encouraged)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="multipleTranslationOptions" id="justSpanish" value="es">
-                                <label class="form-check-label" for="justSpanish">
-                                    Return just Spanish (Not Encouraged)
-                                </label>
-                            </div>
+                            <p>Mode</p>
+                            <select class="custom-select" name="mode" id="modeSelect">
+                                <option value="es-en" selected>Spanish => English</option>
+                                <option value="en-es">English => Spanish</option>
+                            </select>
                             <hr>
                             <p>The translator can remove articles (los, las, lo, la, el, the, an, a, etc.) from submitted words. This can increase the chances of finding a translation. You can disable this feature here.</p>
                             <div class="form-check">
@@ -104,6 +91,14 @@
                                     Enable article removal?
                                 </label>
                             </div>
+                            <!--<hr>
+                            <p>If a word has multiple definitions, this system will return all of them that it can find. Here, you can change the separator used for multiple definitions.</p>
+                            <select class="custom-select" name="definitionSeparator" id="definitionSeparatorSelect" onchange='checkCustomSelect.call(this,event)'>
+                                <option value=";" selected>Semicolon (;) (default)</option>
+                                <option value=",">Comma (,)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <input type="text" name="definitionSeparator" id="definitionSeparator" class="mt-2 form-control" style='display:none;' />
                             <hr>
                             <p>Here, you can change the separator between word and translation when copy-pasting into Quizlet</p>
                             <select class="custom-select" name="termDefinitionSeparator" id="termDefinitionSeparatorSelect" onchange='checkCustomSelect.call(this,event)'>
@@ -118,10 +113,11 @@
                                 <option value="\n" selected>Newline (\n) (default)</option>
                                 <option value=";">Semicolon (;)</option>
                                 <option value="custom">Custom</option>
-                            </select>
+                            </select>-->
                             <input type="text" name="cardSeparator" id="cardSeparator" class="mt-2 form-control" style='display:none;' />
                             <br>
                             <br>
+                            <a href="#!" id="saveSettings" onclick="saveSettings();" class="btn btn-success w-100 mb-3">Save settings</a>
                         </div>
                     </div>
                     <div id="myProgress" class="rounded mb-3">
@@ -137,7 +133,7 @@
                 <h1 class="text-center">Results</h1>
                 <br>
                 <p>
-                    Translated results generated here. Any requests for which a translation could not be found has been marked as so. Please double check these translations before using them, as this program is STILL IN BETA. It is very likely that it will miss multi-word phrases, in those cases, you will need to translate them individually.
+                    Translated results generated here. You can edit the terms and/or definitions by clicking on them below. Please double check these translations before using them, as this program is STILL IN BETA. I have put warning signs next to terms/definitions that really need to be double-checked.
                 </p>
                 <p>
                     You can use this tool to easily generate a <a href="https://quizlet.com/">Quizlet</a> with the following steps:
@@ -178,11 +174,9 @@
                     <div class="modal-body">
                         <h4>Todo:</h4>
                         <ol>
-                            <li>Add calls to some free translation APIs for phrases where "No Translation Found".</li>
-                            <li>Label results with tooltips when relevant.</li>
                             <li>Save settings, previous searches using cookies.</li>
                             <li>Add modals for Privacy Policy and Terms/Conditions.</li>
-                            <li>Add a big shiny switch to translate from English to Spanish, make site in Spanish.</li>
+                            <li>Make version of site translated in Spanish.</li>
                         </ol>
                         <hr>
                         <h4>Known Bugs</h4>

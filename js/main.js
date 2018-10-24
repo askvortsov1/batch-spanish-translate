@@ -4,12 +4,15 @@ var resultingArray;
 var count;
 var percent;
 var slider = document.getElementById("myBar");
+var mode;
 var handleMultipleLanguages;
 var termDefinitionSeparator;
 var cardSeparator;
+var definitionSeparator;
 var removeArticles;
 var width;
 var URL = "https://cors.io/?http://www.spanishdict.com/translate/";
+var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php"
 
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -28,7 +31,7 @@ function populateCopyArea () {
     jQuery('.textCopyArea').val("");
     jQuery('.textCopyArea').html("");
     resultingArray.forEach(function(itemDefinitionList) {
-        jQuery('.textCopyArea').val(jQuery('.textCopyArea').val() + itemDefinitionList[0] + termDefinitionSeparator + itemDefinitionList[1] + cardSeparator);
+        jQuery('.textCopyArea').val(jQuery('.textCopyArea').val() + itemDefinitionList[0] + "\t" + itemDefinitionList[1] + "\n");
     });
 }
 
@@ -78,7 +81,14 @@ function initSystem() {
     } else {
         cardSeparator = jQuery('#cardSeparator').val()
     }
-    handleMultipleLanguages = jQuery("input[name='multipleTranslationOptions']:checked").val();
+    var _ = jQuery('#definitionSeparatorSelect');
+    if (_.val() != 'custom') {
+        definitionSeparator = _.val();
+    } else {
+        definitionSeparator = jQuery('#definitionSeparator').val()
+    }
+    mode = jQuery('#modeSelect').val();
+    handleMultipleLanguages = mode.slice(-2);
     removeArticles = jQuery('#removeArticles').is(":checked");
     jQuery('.textCopyArea').val("");
     jQuery('.result').html("");
@@ -92,53 +102,99 @@ function moveSlider(percent) {
     slider.innerHTML = percent * 1 + '%';
 }
 
+function removeArticlesFromString(string) {
+    return string.replace(/(^([Ll]os|[Ll]as|[Ll]o|[Ll]a|[El]l|[Uu]nos|[Uu]nas|[Uu]na|un|the|a|an|[Tt]o) | ([Ll]os|[Ll]as|[Ll]o|[Ll]a|[El]l|unos|unas|una|un|the|a|an|[Tt]o)$)/gmi, "")
+}
+
+function displayResults() {
+    jQuery('.result').html("");
+    jQuery('.result').val("");
+    resultingArray.forEach(function (row) {
+        var item = row[0];
+        var translated = row[1];
+        var alerts = row[2];
+        var alertString = "";
+        var classStrings = {
+            'danger': 'fas fa-exclamation-triangle text-danger',
+            'warning': 'fas fa-exclamation-circle text-warning'
+        }
+        translated = translated.replace(/,/gm, definitionSeparator);
+        alerts.forEach(function (item) {
+            alertString += ` <a href="#!" data-toggle="tooltip" data-placement="top" title="${item[0]}"><i class="${classStrings[item[1]]}"></i></a>`
+        });
+        jQuery('.result').append(
+            `<li class='col-sm-6 col-md-4 pl-1 pr-4'>
+                    <strong><a href='#!' id='${count}term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='${count}' data-role=\"term\">${item}</a>: </strong><a href='#!' id='${count}translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId="${count}" data-role=\"translation\">${translated}</a><span> ${alertString}</span><span id='inputarea${count}'></span>
+                </li>`
+        );
+    });
+}
+
+function addTranslatedToResultArray(item, translated, alerts) {
+    item = capitalize(item);
+    translated = capitalize(translated);
+    resultingArray[count] = [item, translated, alerts];
+    //Move Slider
+    count += 1;
+    percent = 1.0 * count / array.length;
+    percent *= 100
+    moveSlider(Math.round(percent));
+}
+
 function translate(item, index) {
     item = item.replace(/(,)/gm, "").toLowerCase();
     if (removeArticles) {
-        var urlItem = item.replace(/(^([Ll]os|[Ll]as|[Ll]o|[Ll]a|[El]l|unos|unas|una|un|the|a|an) | ([Ll]os|[Ll]as|[Ll]o|[Ll]a|[El]l|unos|unas|una|un|the|a|an)$)/gm, "")
+        var urlItem = removeArticlesFromString(item)
     } else {
         var urlItem = item;
     }
     var block;
     var translated = "";
     var alerts = [];
+    var found = false;
     $.get(URL + urlItem, function (data) {
         var reg = /<div id=\"translate-e[sn]\" (.+?)>(.+?)<\/div><span/gi;
-        if (reg.test(data)) {
-            if (handleMultipleLanguages == 'es') {
-                data = data.match(/<div id=\"translate-es\" (.+?)>(.+?)<\/div><span/gi);
-                data = data.join(" ");
-            } else if (handleMultipleLanguages == 'en') {
-                data = data.match(/<div id=\"translate-en\" (.+?)>(.+?)<\/div><span/gi);
-                data = data.join(" ");
+        try {
+            if (reg.test(data)) {
+                if (handleMultipleLanguages == 'es') {
+                    data = data.match(/<div id=\"translate-es\" (.+?)>(.+?)<\/div><span/gi);
+                    data = data.join(" ");
+                } else if (handleMultipleLanguages == 'en') {
+                    data = data.match(/<div id=\"translate-en\" (.+?)>(.+?)<\/div><span/gi);
+                    data = data.join(" ");
+                }
             }
+        } catch (e) {
+            console.log(e);
         }
-        if (data == null) {
-            translated = "NO TRANSLATION FOUND";
-            alerts.push("No translation found.");
-        } else {
+        if (data != null) {
             block = data.match(/<div class=\"el\">(.+?)<\/div>/gi);
-            if (block == null) {
-                translated = "NO TRANSLATION FOUND";
-                alerts.push("No translation found.");
-            } else {
-                translated = block.join(" ").replace(/<(?:.|\n)*?>/g, '');
+            if (block != null) {
+                translated = block.join(" ").replace(/<(?:.|\n)*?>/gi, '');
+                found = true;
             }
         }
-        item = capitalize(item);
-        if (translated != "NO TRANSLATION FOUND") {
-            translated = capitalize(translated);
-            var sourceString = data.match(/<div class="source"><h1 .+?>(.+?)<\/h1>/gi).join(" ");
-            if (term != sourceString) {
-                alerts.push("Term may have been entered incorrectly. My guess for the term is" + sourceString + ". <a href='#!' data-id='" + count + "' data-string='" + sourceString + "' onClick='replaceTermWithSuggested(this, event)'> Click here to accept this change</a>.")
+        if (!found) {
+            $.get(
+                serverTranslateAPIURL + "?text=" + encodeURI(item) + "&lang=" + mode,
+                function (data) {
+                    if (data) {
+                        translated = data.replace(/(\+)/gm, " ");
+                        alerts.push(["Our system has detected a higher-than-average chance of errors for this translation. Please be sure to check it. Yopu can make changes by clicking on it.", 'warning']);
+                    } else {
+                        translated = "NO TRANSLATION FOUND";
+                        alerts.push(["No translation was found. You can enter a custom translation by clicking the definition below.", 'danger']);
+                    }
+                    addTranslatedToResultArray(item, translated, alerts);
+                }
+            );
+        } else {
+            var sourceString = data.match(/<div class="source"><h1 .+?>(.+?)<\/h1>/i)[1];
+            if (removeArticlesFromString(item.toLowerCase()) != removeArticlesFromString(sourceString.toLowerCase())) {
+                alerts.push([`Term may have been entered incorrectly. My guess for the term is ${capitalize(sourceString)}. Click on the term to make changes.`, 'warning'])
             }
+            addTranslatedToResultArray(item, translated, alerts);
         }
-        jQuery('.result').append("<li class='col-sm-6 col-md-4'><strong><a href='#!' id='" + count + "term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='" + count + "' data-role=\"term\">" + item + "</a>: </strong> <a href='#!' id='" + count + "translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId=" + count + " data-role=\"translation\">" + translated + "</a><span id='inputarea" + count + "'></span></li>");
-        resultingArray[count] = [item, translated, alerts];
-        count += 1;
-        percent = 1.0 * count / array.length;
-        percent *= 100
-        moveSlider(Math.round(percent));
     });
 }
 
@@ -150,6 +206,8 @@ function respondToAjax() {
         } else {
             alert("Network issue, please try again. Check your internet connection, and reload the page if the error persists.");
         }
+        jQuery('html, body').animate({ scrollTop:  jQuery('.result').offset().top - 50 });
+        displayResults();
     });
 }
 
@@ -158,8 +216,6 @@ function handleFileSelect(e) {
 
     // use the 1st file from the list
     f = files[0];
-
-    initSystem();
 
     // Closure to capture the file information.
     reader.onload = (function (theFile) {
@@ -228,6 +284,66 @@ function replaceTermWithSuggested (e) {
     jQuery('#' + id + 'term').innerHTML = string;
 }
 
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function saveSettings() {
+    jQuery('#enterText-tab').trigger("click");
+    var name = "settings"
+    var value = "mode:" + mode + "~termDefinitionSeparator:" + termDefinitionSeparator + "~cardSeparator:" + cardSeparator + "~definitionSeparator:" + definitionSeparator + "~removeArticles:" + removeArticles;
+    setCookie(name, value, 3000);
+}
+
+function importCookies() {
+    var cookie = getCookie("settings");
+    if (!cookie) { return; };
+    var cookieList = cookie.split("~");
+    for (var i = 0; i < cookieList.length; i++) {
+        var c = cookieList[i];
+        if (c.indexOf("mode:") == 0) {
+            mode = c.replace(/mode:/gmi, "");
+        }
+        if (c.indexOf("termDefinitionSeparator:") == 0) {
+            termDefinitionSeparator = c.replace(/termDefinitionSeparator:/gmi, "");
+        }
+        if (c.indexOf("cardSeparator:") == 0) {
+            cardSeparator = c.replace(/cardSeparator:/gmi, "");
+        }
+        if (c.indexOf("definitionSeparator:") == 0) {
+            definitionSeparator = c.replace(/definitionSeparator:/gmi, "");
+        }
+        if (c.indexOf("removeArticles:") == 0) {
+            removeArticles = c.replace(/removeArticles:/gmi, "");
+        }
+    }
+    jQuery('#modeSelect').val(mode);
+    jQuery('#removeArticles').val(removeArticles);
+    jQuery('#cardSeparatorSelect').val(cardSeparator);
+    jQuery('#definitionSeparatorSelect').val(definitionSeparator);
+    jQuery('#removeArticlesSelect').val(removeArticles);
+}
+
+importCookies();
 initSystem();
 
 jQuery('#submit').click(handleTranslateButtonClick);
