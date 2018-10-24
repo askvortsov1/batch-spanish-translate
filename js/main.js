@@ -76,7 +76,7 @@ function getSettingsFromForm() {
         settings['definitionSeparator'] = jQuery('#definitionSeparator').val()
     }
     settings['mode'] = jQuery('#modeSelect').val();
-    settings['handleMultipleLanguages'] = mode.slice(-2);
+    settings['handleMultipleLanguages'] = settings['mode'].slice(-2);
     settings['removeArticles'] = jQuery('#removeArticles').is(":checked");
 }
 
@@ -117,7 +117,7 @@ function displayResults() {
             'danger': 'fas fa-exclamation-triangle text-danger',
             'warning': 'fas fa-exclamation-circle text-warning'
         }
-        translated = translated.replace(/,/gm, definitionSeparator);
+        translated = translated.replace(/,/gm, settings['definitionSeparator']);
         alerts.forEach(function (item) {
             alertString += ` <a href="#!" data-toggle="tooltip" data-placement="top" title="${item[0]}"><i class="${classStrings[item[1]]}"></i></a>`
         });
@@ -155,10 +155,10 @@ function translate(item, index) {
         var reg = /<div id=\"translate-e[sn]\" (.+?)>(.+?)<\/div><span/gi;
         try {
             if (reg.test(data)) {
-                if (handleMultipleLanguages == 'es') {
+                if (settings['handleMultipleLanguages'] == 'es ') {
                     data = data.match(/<div id=\"translate-es\" (.+?)>(.+?)<\/div><span/gi);
                     data = data.join(" ");
-                } else if (handleMultipleLanguages == 'en') {
+                } else if (settings['handleMultipleLanguages'] == 'en') {
                     data = data.match(/<div id=\"translate-en\" (.+?)>(.+?)<\/div><span/gi);
                     data = data.join(" ");
                 }
@@ -175,7 +175,7 @@ function translate(item, index) {
         }
         if (!found) {
             $.get(
-                serverTranslateAPIURL + "?text=" + encodeURI(item) + "&lang=" + mode,
+                serverTranslateAPIURL + "?text=" + encodeURI(item) + "&lang=" + settings['mode'],
                 function (data) {
                     if (data) {
                         translated = data.replace(/(\+)/gm, " ");
@@ -309,7 +309,11 @@ function setCookie(cname, cvalue, exdays) {
 function saveSettings() {
     jQuery('#enterText-tab').trigger("click");
     var name = "settings"
-    var value = "mode:" + mode + "~termDefinitionSeparator:" + termDefinitionSeparator + "~cardSeparator:" + cardSeparator + "~definitionSeparator:" + definitionSeparator + "~removeArticles:" + removeArticles;
+    var value = ""
+    for (var key in settings) {
+        var value = settings[key];
+        value += key + ":" + value + "~";
+    }
     setCookie(name, value, 3000);
 }
 
@@ -319,27 +323,16 @@ function importCookies() {
     var cookieList = cookie.split("~");
     for (var i = 0; i < cookieList.length; i++) {
         var c = cookieList[i];
-        if (c.indexOf("mode:") == 0) {
-            mode = c.replace(/mode:/gmi, "");
-        }
-        if (c.indexOf("termDefinitionSeparator:") == 0) {
-            termDefinitionSeparator = c.replace(/termDefinitionSeparator:/gmi, "");
-        }
-        if (c.indexOf("cardSeparator:") == 0) {
-            cardSeparator = c.replace(/cardSeparator:/gmi, "");
-        }
-        if (c.indexOf("definitionSeparator:") == 0) {
-            definitionSeparator = c.replace(/definitionSeparator:/gmi, "");
-        }
-        if (c.indexOf("removeArticles:") == 0) {
-            removeArticles = c.replace(/removeArticles:/gmi, "");
+        for (var key in settings) {
+            var regex = new RegExp(key + ":", "gmi");
+            if (c.indexOf(key + ":") == 0) {
+                settings[key] = c.replace(regex, "");
+            }
         }
     }
-    jQuery('#modeSelect').val(mode);
-    jQuery('#removeArticles').val(removeArticles);
-    jQuery('#cardSeparatorSelect').val(cardSeparator);
-    jQuery('#definitionSeparatorSelect').val(definitionSeparator);
-    jQuery('#removeArticlesSelect').val(removeArticles);
+    for (var key in settings) {
+        jQuery('#' + key + 'Select').val(settings[key]);
+    }
 }
 
 importCookies();
