@@ -4,12 +4,7 @@ var resultingArray;
 var count;
 var percent;
 var slider = document.getElementById("myBar");
-var mode;
-var handleMultipleLanguages;
-var termDefinitionSeparator;
-var cardSeparator;
-var definitionSeparator;
-var removeArticles;
+var settings = {};
 var width;
 var URL = "https://cors.io/?http://www.spanishdict.com/translate/";
 var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php"
@@ -61,6 +56,30 @@ function downloadTranslations() {
     link.click();
 }
 
+function getSettingsFromForm() {
+    var _ = jQuery('#termDefinitionSeparatorSelect');
+    if (_.val() != 'custom') {
+        settings['termDefinitionSeparator'] = _.val();
+    } else {
+        settings['termDefinitionSeparator'] = jQuery('#termDefinitionSeparator').val()
+    }
+    var _ = jQuery('#cardSeparatorSelect');
+    if (_.val() != 'custom') {
+        settings['cardSeparator'] = _.val();
+    } else {
+        settings['cardSeparator'] = jQuery('#cardSeparator').val()
+    }
+    var _ = jQuery('#definitionSeparatorSelect');
+    if (_.val() != 'custom') {
+        settings['definitionSeparator'] = _.val();
+    } else {
+        settings['definitionSeparator'] = jQuery('#definitionSeparator').val()
+    }
+    settings['mode'] = jQuery('#modeSelect').val();
+    settings['handleMultipleLanguages'] = mode.slice(-2);
+    settings['removeArticles'] = jQuery('#removeArticles').is(":checked");
+}
+
 function initSystem() {
     width = 0;
     percent = 0;
@@ -69,32 +88,12 @@ function initSystem() {
     resultingArray = [];
     slider.style.width = 0;
     slider.innerHTML = "0%";
-    var _ = jQuery('#termDefinitionSeparatorSelect');
-    if (_.val() != 'custom') {
-        termDefinitionSeparator = _.val();
-    } else {
-        termDefinitionSeparator = jQuery('#termDefinitionSeparator').val()
-    }
-    var _ = jQuery('#cardSeparatorSelect');
-    if (_.val() != 'custom') {
-        cardSeparator = _.val();
-    } else {
-        cardSeparator = jQuery('#cardSeparator').val()
-    }
-    var _ = jQuery('#definitionSeparatorSelect');
-    if (_.val() != 'custom') {
-        definitionSeparator = _.val();
-    } else {
-        definitionSeparator = jQuery('#definitionSeparator').val()
-    }
-    mode = jQuery('#modeSelect').val();
-    handleMultipleLanguages = mode.slice(-2);
-    removeArticles = jQuery('#removeArticles').is(":checked");
     jQuery('.textCopyArea').val("");
     jQuery('.result').html("");
     jQuery('.result').hide();
     jQuery('.textCopyArea').html("");
     jQuery('.ResultsHeader').hide();
+    getSettingsFromForm();
 }
 
 function moveSlider(percent) {
@@ -109,7 +108,7 @@ function removeArticlesFromString(string) {
 function displayResults() {
     jQuery('.result').html("");
     jQuery('.result').val("");
-    resultingArray.forEach(function (row) {
+    resultingArray.forEach(function (row, index) {
         var item = row[0];
         var translated = row[1];
         var alerts = row[2];
@@ -124,7 +123,7 @@ function displayResults() {
         });
         jQuery('.result').append(
             `<li class='col-sm-6 col-md-4 pl-1 pr-4'>
-                    <strong><a href='#!' id='${count}term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='${count}' data-role=\"term\">${item}</a>: </strong><a href='#!' id='${count}translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId="${count}" data-role=\"translation\">${translated}</a><span> ${alertString}</span><span id='inputarea${count}'></span>
+                    <strong><a href='#!' id='${index}term' class='link-uncolor term' onclick='addInput(this, event)' data-cardId='${index}' data-role=\"term\">${item}</a>: </strong><a href='#!' id='${index}translation' class='link-uncolor definition' onclick='addInput(this, event)' data-cardId="${index}" data-role=\"translation\">${translated}</a><span> ${alertString}</span><span id='inputarea${index}'></span>
                 </li>`
         );
     });
