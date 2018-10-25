@@ -142,7 +142,7 @@ function addTranslatedToResultArray(item, translated, alerts) {
 
 function translate(item, index) {
     item = item.replace(/(,)/gm, "").toLowerCase();
-    if (removeArticles) {
+    if (settings['removeArticles']) {
         var urlItem = removeArticlesFromString(item)
     } else {
         var urlItem = item;
