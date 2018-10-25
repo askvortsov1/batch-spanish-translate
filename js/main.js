@@ -216,7 +216,7 @@ function translate(item, index) {
         } else {
             var sourceString = data.match(/<div class="source"><h1 .+?>(.+?)<\/h1>/i)[1];
             if (removeArticlesFromString(item.toLowerCase()) != removeArticlesFromString(sourceString.toLowerCase())) {
-                alerts.push([`Term may have been entered incorrectly. My guess for the term is ${capitalize(sourceString)}. Click on the term to make changes.`, 'warning'])
+                alerts.push([`Term may have been entered incorrectly. My guess for the term is "${capitalize(sourceString)}". Click on the term to make changes.`, 'warning'])
             }
             addTranslatedToResultArray(item, translated, alerts);
         }
