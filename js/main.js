@@ -21,10 +21,24 @@ settings['specialCharacterMapping'] = {
     '~~U': 'Ü',
     '~n': 'ñ',
     '~N': 'Ñ',
+    '~\\?': '¿',
 }
 var width;
 var URL = "https://cors.io/?http://www.spanishdict.com/translate/";
 var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php";
+
+function handleSpecialCharacterEntry(e) {
+    var mapping = settings['specialCharacterMapping'];
+    var element = e.target;
+    var reg = RegExp("(" + Object.keys(mapping).join("|") + ")", 'gm')
+    var new_value = element.value.replace(reg, function (g1) {
+        if (g1 == '~?') {
+            return mapping['~\\?']
+        }
+        return mapping[g1];
+    });
+    element.value = new_value;
+}
 
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -337,16 +351,6 @@ function importCookies() {
     for (var key in settings) {
         jQuery('#' + key + 'Select').val(settings[key]);
     }
-}
-
-function handleSpecialCharacterEntry(e) {
-    var mapping = settings['specialCharacterMapping'];
-    var element = e.target;
-    var reg = RegExp("(" + Object.keys(mapping).join("|") + ")", 'gm')
-    var new_value = element.value.replace(reg, function (g1) {
-        return mapping[g1];
-    });
-    element.value = new_value;
 }
 
 importCookies();
