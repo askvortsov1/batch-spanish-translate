@@ -5,9 +5,26 @@ var count;
 var percent;
 var slider = document.getElementById("myBar");
 var settings = {};
+settings['specialCharacterMapping'] = {
+    '~~u': 'ü', // This goes first to override u with accent
+    '~a': 'á',
+    '~A': 'Á',
+    '~e': 'é',
+    '~E': 'É',
+    '~i': 'í',
+    '~I': 'Í',
+    '~o': 'ó',
+    '~O': 'Ó',
+    '~u': 'ú',
+    '~U': 'Ú',
+    '~!': '¡',
+    '~~U': 'Ü',
+    '~n': 'ñ',
+    '~N': 'Ñ',
+}
 var width;
 var URL = "https://cors.io/?http://www.spanishdict.com/translate/";
-var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php"
+var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php";
 
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -152,16 +169,11 @@ function translate(item, index) {
     var alerts = [];
     var found = false;
     $.get(URL + urlItem, function (data) {
-        var reg = /<div id=\"translate-e[sn]\" (.+?)>(.+?)<\/div><span/gi;
+        var reg = RegExp("<div id=\"translate-" + settings['handleMultipleLanguages'] + "\" (.+?)>(.+?)<\/div><span", "gi")
         try {
             if (reg.test(data)) {
-                if (settings['handleMultipleLanguages'] == 'es ') {
-                    data = data.match(/<div id=\"translate-es\" (.+?)>(.+?)<\/div><span/gi);
-                    data = data.join(" ");
-                } else if (settings['handleMultipleLanguages'] == 'en') {
-                    data = data.match(/<div id=\"translate-en\" (.+?)>(.+?)<\/div><span/gi);
-                    data = data.join(" ");
-                }
+                data = data.match(reg);
+                data = data.join(" ");
             }
         } catch (e) {
             console.log(e);
@@ -262,7 +274,8 @@ function addInput(e) {
     var inputField = jQuery('#' + id + 'Input');
     inputField.value = e.innerHTML;
     inputField.attr("value", e.innerHTML);
-    inputField.on("input", function(change) {
+    inputField.on("input", function (e) {handleSpecialCharacterEntry(e);});
+    inputField.on("input", function() {
         e.innerHTML = inputField.val();
         var term = jQuery('#' + id + 'term').html().replace(/(^\s+?|\s+?$)/gm, "");
         var translated = jQuery('#' + id + 'translation').html().replace(/(^\s+?|\s+?$)/gm, "");
@@ -272,15 +285,6 @@ function addInput(e) {
     inputField.on('focusout', function () {
         inputField.remove()
     });
-}
-
-function replaceTermWithSuggested (e) {
-    var id = e.dataset["id"];
-    var string = e.dataset["string"];
-
-    resultingArray[id][0] = string;
-
-    jQuery('#' + id + 'term').innerHTML = string;
 }
 
 function getCookie(cname) {
@@ -335,8 +339,19 @@ function importCookies() {
     }
 }
 
+function handleSpecialCharacterEntry(e) {
+    var mapping = settings['specialCharacterMapping'];
+    var element = e.target;
+    var reg = RegExp("(" + Object.keys(mapping).join("|") + ")", 'gm')
+    var new_value = element.value.replace(reg, function (g1) {
+        return mapping[g1];
+    });
+    element.value = new_value;
+}
+
 importCookies();
 initSystem();
 
+jQuery('#textarea').on("input", function (e) {handleSpecialCharacterEntry(e)});
 jQuery('#submit').click(handleTranslateButtonClick);
 jQuery('#upload').change(handleFileSelect);
