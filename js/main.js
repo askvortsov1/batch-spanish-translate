@@ -216,7 +216,7 @@ function translate(item, index) {
         } else {
             var sourceString = data.match(/<div class="source"><h1 .+?>(.+?)<\/h1>/i)[1];
             if (removeArticlesFromString(item.toLowerCase()) != removeArticlesFromString(sourceString.toLowerCase())) {
-                alerts.push([`Term may have been entered incorrectly. My guess for the term is "${capitalize(sourceString)}". Click on the term to make changes.`, 'warning'])
+                alerts.push([`Term may have been entered incorrectly. My guess for the term is '${capitalize(sourceString)}'. Click on the term to make changes.`, 'warning'])
             }
             addTranslatedToResultArray(item, translated, alerts);
         }
@@ -306,7 +306,11 @@ function getCookie(cname) {
     var decodedCookie = decodeURIComponent(document.cookie);
     var ca = decodedCookie.split(';');
     for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
+        try {
+            var c = atob(ca[i]);
+        } catch (DOMException) {
+            var c = ca[i];
+        }
         while (c.charAt(0) == ' ') {
             c = c.substring(1);
         }
@@ -321,22 +325,26 @@ function setCookie(cname, cvalue, exdays) {
     var d = new Date();
     d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
     var expires = "expires=" + d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    document.cookie = cname + "=" + btoa(cvalue) + ";" + expires + ";path=/";
 }
 
 function saveSettings() {
     jQuery('#enterText-tab').trigger("click");
-    var name = "settings"
-    var value = ""
+    getSettingsFromForm();
+    var name = "settings";
+    var valueString = "";
+    var stuffToSave = ['mode', 'removeArticles', 'definitionSeparator'];
     for (var key in settings) {
-        var value = settings[key];
-        value += key + ":" + value + "~";
+        if (stuffToSave.indexOf(key) > -1) {
+            var value = settings[key];
+            valueString += key + ":" + value + "~";
+        }
     }
-    setCookie(name, value, 3000);
+    setCookie(name, valueString, 3000);
 }
 
 function importCookies() {
-    var cookie = getCookie("settings");
+    var cookie = atob(getCookie("settings"));
     if (!cookie) { return; };
     var cookieList = cookie.split("~");
     for (var i = 0; i < cookieList.length; i++) {
@@ -345,14 +353,18 @@ function importCookies() {
             var regex = new RegExp(key + ":", "gmi");
             if (c.indexOf(key + ":") == 0) {
                 settings[key] = c.replace(regex, "");
+                console.log(key)
+                console.log(settings[key])
             }
         }
     }
+    console.log(settings)
     for (var key in settings) {
         jQuery('#' + key + 'Select').val(settings[key]);
     }
 }
 
+getSettingsFromForm();
 importCookies();
 initSystem();
 
