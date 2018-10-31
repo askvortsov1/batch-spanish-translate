@@ -24,8 +24,9 @@ settings['specialCharacterMapping'] = {
     '~\\?': '¿',
 }
 var width;
-var URL = "https://cors.io/?http://www.spanishdict.com/translate/";
-var serverTranslateAPIURL = "https://cors.io/?http://spanish.orgfree.com/translate.php";
+var corsUrl = "https://cors-anywhere.herokuapp.com/";
+var URL = corsUrl + "http://www.spanishdict.com/translate/";
+var serverTranslateAPIURL = "http://spanish.orgfree.com/translate.php";
 
 function handleSpecialCharacterEntry(e) {
     var mapping = settings['specialCharacterMapping'];
